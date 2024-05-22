@@ -31,11 +31,12 @@ let data = reactive({
     start_stop: 'Stop'
 });
 
+let start_time = Date.now();
 
 function createShaderMaterial(shader, scene) {
     let material = new ShaderMaterial(shader, scene, BASE_URL + 'shaders/' + shader, {
         attributes: ['position', 'uv'],
-        uniforms: ['worldViewProjection'],
+        uniforms: ['worldViewProjection', 'time'],
         samplers: ['image']
     });
     material.backFaceCulling = false;
@@ -144,7 +145,7 @@ onMounted(() => {
     data.materials.custom = createShaderMaterial('custom', data.scene);
 
     // Create video textures
-    data.textures.video = new VideoTexture('video', BASE_URL + 'videos/dm_vector.mp4', data.scene, false,
+    data.textures.video = new VideoTexture('video', BASE_URL + 'videos/outdoor_stock.mp4', data.scene, false,
                                            false, VideoTexture.BILINEAR_SAMPLINGMODE, 
                                            {autoUpdateTexture: true, autoPlay: true, loop: true, muted: true});
 
@@ -182,6 +183,9 @@ onMounted(() => {
     // Assign triangle a material
     rect.material = data.materials.standard;
 
+    // Initialize a previous frame time
+    let previousFrameTime = Date.now();
+
     // Animation function - called before each frame gets rendered
     data.scene.onBeforeRenderObservable.add(() => {
         if (data.filter !== rect.material.name) {
@@ -191,6 +195,15 @@ onMounted(() => {
         if (data.textures[data.selected_texture] !== null) {
             data.materials[data.filter].setTexture('image', data.textures[data.selected_texture]);
         }
+
+        let current_time = (Date.now() - start_time) / 1000;
+        // calculate delta time
+        // let currentFrameTime = Date.now() / 1000.0;
+        // let deltaTime = (currentFrameTime - previousFrameTime);
+        // console.log(deltaTime);
+        // previousFrameTime = currentFrameTime;
+        // data.materials[data.filter].setFloat('deltaTime', deltaTime);
+        data.materials[data.filter].setFloat('time', current_time);
     });
 
     // Render every frame
